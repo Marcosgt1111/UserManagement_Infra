@@ -1,0 +1,36 @@
+services:
+  db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: usermanagement
+      # ":?" faz o compose parar com erro se a variável não existir no .env
+      POSTGRES_USER: ${POSTGRES_USER:?defina POSTGRES_USER no .env}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?defina POSTGRES_PASSWORD no .env}
+    volumes:
+      - pgdata:/var/lib/postgresql/data       # dados sobrevivem ao "docker compose down"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d usermanagement"]
+      interval: 5s
+      retries: 10
+    restart: unless-stopped
+
+  api:
+    build: ../UserManagementAPI               # usa o Dockerfile da API
+    environment:
+      ConnectionStrings__DefaultConnection: "Host=db;Port=5432;Database=usermanagement;Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD}"
+      JwtSettings__Key: ${JWT_KEY:?defina JWT_KEY no .env (mínimo de 32 caracteres)}
+    depends_on:
+      db:
+        condition: service_healthy            # só sobe quando o Postgres estiver pronto
+    restart: unless-stopped
+
+  front:
+    build: ../UserManagement_Frontend
+    ports:
+      - "8080:80"                             # http://localhost:8080
+    depends_on:
+      - api
+    restart: unless-stopped
+
+volumes:
+  pgdata:

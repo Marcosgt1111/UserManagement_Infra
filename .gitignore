@@ -1,0 +1,8 @@
+# Segredos locais (senhas, chaves)
+.env
+.env.*
+!.env.example
+
+# Editores
+.vscode/
+.idea/
