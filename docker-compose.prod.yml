@@ -1,0 +1,36 @@
+services:
+  db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: usermanagement
+      POSTGRES_USER: ${POSTGRES_USER:?defina POSTGRES_USER no .env}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?defina POSTGRES_PASSWORD no .env}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d usermanagement"]
+      interval: 5s
+      retries: 10
+    restart: unless-stopped
+
+  api:
+    # Imagem pronta, publicada pelo CI. API_TAG e FRONT_TAG vêm do .env (padrão: latest)
+    image: ghcr.io/marcosgt1111/usermanagement-api:${API_TAG:-latest}
+    environment:
+      ConnectionStrings__DefaultConnection: "Host=db;Port=5432;Database=usermanagement;Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD}"
+      JwtSettings__Key: ${JWT_KEY:?defina JWT_KEY no .env (mínimo de 32 caracteres)}
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+
+  front:
+    image: ghcr.io/marcosgt1111/usermanagement-front:${FRONT_TAG:-latest}
+    ports:
+      - "80:80"                               # na EC2: http://IP-do-servidor
+    depends_on:
+      - api
+    restart: unless-stopped
+
+volumes:
+  pgdata:
