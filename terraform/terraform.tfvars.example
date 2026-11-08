@@ -1,0 +1,6 @@
+# Copie este arquivo para "terraform.tfvars" e preencha os valores.
+# O terraform.tfvars NÃO vai para o Git (está no .gitignore).
+
+# Seu IP público. Para descobrir: curl.exe https://checkip.amazonaws.com
+my_ip_cidr   = "SEU.IP.AQUI/32"
+budget_email = "seu-email@exemplo.com"

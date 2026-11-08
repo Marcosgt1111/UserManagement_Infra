@@ -6,3 +6,10 @@
 # Editores
 .vscode/
 .idea/
+
+# Terraform: o state pode conter dados sensíveis
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfvars
+!*.tfvars.example
